@@ -38,5 +38,15 @@ class UserMiddleware(BaseMiddleware):
             )
 
         data["user"] = user
+        data["event_attrs"].update(
+            {
+                "chat_id": from_chat_id,
+                "chat_title": chat_title,
+                "chat_type": event_chat.type,
+                "user_phone_number": user.phone,
+                "user_email": user.email,
+                "user_role": user.role.value,
+            }
+        )
 
         return await handler(event, data)
