@@ -1,15 +1,14 @@
 import asyncio
-import logging
+
+from loguru import logger
 
 from app.config import config
 from app.infrastructure.database.db import sa_sessionmaker
+from app.infrastructure.logging import setup_logging
 from app.tgbot.dispatcher import bot, dp
 from app.tgbot.handlers import register_handlers
 from app.tgbot.middlewares import setup_middlewares
 from app.tgbot.services.set_menu import set_main_menu
-
-
-logger = logging.getLogger(__name__)
 
 
 async def on_startup() -> None:
@@ -30,12 +29,7 @@ async def on_shutdown() -> None:
 
 
 async def main() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(filename)s:%(lineno)d #%(levelname)-8s "
-        "[%(asctime)s] - %(name)s - %(message)s",
-    )
-
+    setup_logging()
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 

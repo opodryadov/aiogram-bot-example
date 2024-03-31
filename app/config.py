@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     db: DBSettings
     redis: RedisSettings
 
+    logging_level: str
     email_support: str
     template_link: str
     debug: bool
