@@ -10,15 +10,15 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.11"
-aiogram = "3.4.1"
-pydantic-settings = "2.2.1"
-sqlalchemy = "2.0.29"
+aiogram = "3.7.0"
+pydantic-settings = "2.3.3"
+sqlalchemy = "2.0.30"
 asyncpg = "0.29.0"
 alembic = "1.13.1"
-redis = {extras = ["hiredis"], version = "5.0.3"}
+redis = {version = "5.0.6", extras = ["hiredis"]}
 aiogram-dialog = "2.1.0"
 loguru = "0.7.2"
-orjson = "3.10.0"
+orjson = "3.10.5"
 aiormq = "6.8.0"
 
 
