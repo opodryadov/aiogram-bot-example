@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveInt
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,15 @@ class RedisSettings(BaseModel):
     cache_expires: int
 
 
+class RabbitMQSettings(BaseModel):
+    url: str
+    prefetch_count: PositiveInt = 1
+    reconnect_delay: PositiveInt = 5
+    exchange_name: str
+    exchange_type: str
+    queue_name: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
@@ -34,6 +43,7 @@ class Settings(BaseSettings):
     bot: BotSettings
     db: DBSettings
     redis: RedisSettings
+    telegram_queue: RabbitMQSettings
 
     logging_level: str
     email_support: str
