@@ -4,7 +4,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import TelegramObject
 from sqlalchemy.orm import Session
 
-from app.infrastructure.database.models.user import Role, UserModel
+from app.infrastructure.database.models.chat import ChatModel, Role
 
 
 class RoleFilter(BaseFilter):
@@ -12,11 +12,11 @@ class RoleFilter(BaseFilter):
         self.roles = roles
 
     async def __call__(
-        self, obj: TelegramObject, user: UserModel, session: Session
+        self, obj: TelegramObject, chat: ChatModel, session: Session
     ) -> bool:
-        if not user:
+        if not chat:
             if not self.roles:
                 return True
             return False
 
-        return user.role in self.roles
+        return chat.role in self.roles

@@ -1,7 +1,7 @@
 from aiogram import Dispatcher
 
-from app.tgbot.handlers.user.setup import register_user_handlers
+from app.tgbot.handlers.chat.setup import register_chat_handlers
 
 
 def register_handlers(dp: Dispatcher):
-    register_user_handlers(dp)
+    register_chat_handlers(dp)

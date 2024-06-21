@@ -1,5 +1,5 @@
 from .base import BaseModel
-from .user import UserModel
+from .chat import ChatModel
 
 
-__all__ = ["BaseModel", "UserModel"]
+__all__ = ["BaseModel", "ChatModel"]

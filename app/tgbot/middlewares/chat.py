@@ -3,11 +3,11 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 from aiogram import BaseMiddleware
 from aiogram.types import Chat, Update, User
 
-from app.infrastructure.database.models.user import UserModel
+from app.infrastructure.database.models.chat import ChatModel
 from app.infrastructure.database.repositories import Repository
 
 
-class UserMiddleware(BaseMiddleware):
+class ChatMiddleware(BaseMiddleware):
     async def __call__(
         self,
         handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
@@ -20,8 +20,9 @@ class UserMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         from_chat_id = event_chat.id
+        chat_type = event_chat.type
 
-        if event_chat.type == "private":
+        if chat_type == "private":
             chat_title = " ".join(
                 filter(None, [event_chat.first_name, event_chat.last_name])
             )
@@ -29,23 +30,25 @@ class UserMiddleware(BaseMiddleware):
             chat_title = event_chat.title
 
         repository: Repository = data.get("repository")
-        user: Optional[UserModel] = await repository.user.get_user(
+        chat: Optional[ChatModel] = await repository.chat.get_chat(
             chat_id=from_chat_id
         )
-        if not user:
-            user = await repository.user.add_user(
-                chat_id=from_chat_id, chat_title=chat_title
+        if not chat:
+            chat = await repository.chat.add_chat(
+                chat_id=from_chat_id,
+                chat_title=chat_title,
+                chat_type=chat_type
             )
 
-        data["user"] = user
+        data["chat"] = chat
         data["event_attrs"].update(
             {
                 "chat_id": from_chat_id,
                 "chat_title": chat_title,
-                "chat_type": event_chat.type,
-                "user_phone_number": user.phone,
-                "user_email": user.email,
-                "user_role": user.role.value,
+                "chat_type": chat_type,
+                "user_phone_number": chat.phone,
+                "user_email": chat.email,
+                "user_role": chat.role.value,
             }
         )
 

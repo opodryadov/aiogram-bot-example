@@ -1,6 +1,6 @@
 from .base import BaseRepository
+from .chat import ChatRepository
 from .general import Repository
-from .user import UserRepository
 
 
-__all__ = ["BaseRepository", "Repository", "UserRepository"]
+__all__ = ["BaseRepository", "ChatRepository", "Repository"]

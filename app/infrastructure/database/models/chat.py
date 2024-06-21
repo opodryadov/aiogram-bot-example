@@ -17,8 +17,8 @@ class Role(str, Enum):
     BLOCKED = "blocked"
 
 
-class UserModel(BaseModel):
-    __tablename__ = "users"
+class ChatModel(BaseModel):
+    __tablename__ = "chats"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid4
@@ -27,6 +27,7 @@ class UserModel(BaseModel):
         BigInteger, unique=True, nullable=False
     )
     chat_title: Mapped[str] = mapped_column(String(128), nullable=False)
+    chat_type: Mapped[str] = mapped_column(String(16), nullable=False)
     phone: Mapped[str] = mapped_column(String(16), unique=True, nullable=True)
     email: Mapped[str] = mapped_column(String(64), unique=True, nullable=True)
     role: Mapped[Role] = mapped_column(ENUM(Role), default=Role.UNAUTHORIZED)
