@@ -24,11 +24,10 @@ else Кэш не найден в Redis
 end
 
 alt HTTP_200_OK
-    Webserver -> RabbitMQ: Отправка сообщения в очередь 1
+    Webserver -> RabbitMQ: Отправка сообщения в очередь
 else Any error
     Webserver -> "Any integration": Сообщение об ошибке
 end
-"Telegram Bot" -> RabbitMQ: Отправка сообщения в очередь 2
 RabbitMQ -> Consumer: Получение сообщения
 Consumer -> "Telegram Bot": Отправка ответа
 "Telegram Bot" -> Grafana: Логирование
