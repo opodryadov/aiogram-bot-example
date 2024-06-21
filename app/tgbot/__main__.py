@@ -5,7 +5,6 @@ from loguru import logger
 from app.config import config
 from app.infrastructure.database.db import sa_sessionmaker
 from app.infrastructure.logging import setup_logging
-from app.infrastructure.rabbitmq.consumers import telegram_consumer
 from app.tgbot.dispatcher import bot, dp
 from app.tgbot.handlers import register_handlers
 from app.tgbot.middlewares import setup_middlewares
@@ -16,7 +15,6 @@ async def on_startup() -> None:
     logger.info("Starting bot '%s'..." % config.bot.name)
 
     session_factory = sa_sessionmaker(config.db, enable_logging=config.debug)
-    await telegram_consumer.consume()
     register_handlers(dp=dp)
     setup_middlewares(dp=dp, sessionmaker=session_factory)
     await set_main_menu(bot=bot)
@@ -27,7 +25,6 @@ async def on_startup() -> None:
 async def on_shutdown() -> None:
     logger.info("Bot '%s' stopping..." % config.bot.name)
 
-    await telegram_consumer.shutdown()
     await bot.session.close()
 
 
