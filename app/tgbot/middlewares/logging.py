@@ -18,11 +18,9 @@ class LoggingMiddleware(BaseMiddleware):
         event: Update,
         data: dict[str, Any],
     ) -> Any:
-        event_attrs: dict[str, Any] = {}
+        event_attrs: dict[str, Any] = {"uuid": uuid4().hex}
 
         if event.message:
-            event_attrs["message_id"] = uuid4().hex
-
             message: Message = event.message
             if message.from_user:
                 event_attrs["chat_id"] = message.chat.id
@@ -56,3 +54,5 @@ class LoggingMiddleware(BaseMiddleware):
         data["event_attrs"] = event_attrs
 
         await handler(event, data)
+
+        self.logger.info("Received %s: %s" % (event.event_type, event_attrs))
