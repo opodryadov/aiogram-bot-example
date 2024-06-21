@@ -12,15 +12,10 @@ class ChatRepository(BaseRepository):
     storage: ChatRedisStorage = ChatRedisStorage(redis=redis)
 
     async def add_chat(
-        self,
-        chat_id: int,
-        chat_title: str,
-        chat_type: str
+        self, chat_id: int, chat_title: str, chat_type: str
     ) -> ChatModel:
         new_chat: ChatModel = ChatModel(
-            chat_id=chat_id,
-            chat_title=chat_title,
-            chat_type=chat_type
+            chat_id=chat_id, chat_title=chat_title, chat_type=chat_type
         )
         await self.commit(new_chat)
         return new_chat

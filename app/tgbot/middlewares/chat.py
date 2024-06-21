@@ -37,7 +37,7 @@ class ChatMiddleware(BaseMiddleware):
             chat = await repository.chat.add_chat(
                 chat_id=from_chat_id,
                 chat_title=chat_title,
-                chat_type=chat_type
+                chat_type=chat_type,
             )
 
         data["chat"] = chat
