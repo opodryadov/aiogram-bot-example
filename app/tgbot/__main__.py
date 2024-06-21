@@ -14,7 +14,7 @@ from app.tgbot.services.set_menu import set_main_menu
 async def on_startup() -> None:
     logger.info("Starting bot '%s'..." % config.bot.name)
 
-    session_factory = sa_sessionmaker(config.db, enable_logging=config.debug)
+    session_factory = sa_sessionmaker(config.db)
     register_handlers(dp=dp)
     setup_middlewares(dp=dp, sessionmaker=session_factory)
     await set_main_menu(bot=bot)

@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel, PositiveInt, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,11 +12,8 @@ class BotSettings(BaseModel):
 
 
 class DBSettings(BaseModel):
-    host: str
-    port: int
-    name: str
-    user: str
-    password: str
+    dsn: PostgresDsn
+    echo: bool
 
 
 class RedisSettings(BaseModel):
@@ -48,7 +45,6 @@ class Settings(BaseSettings):
     logging_level: str
     email_support: str
     template_link: str
-    debug: bool
 
 
 config = Settings()
