@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     bot: BotSettings
     db: DBSettings
     redis: RedisSettings
-    telegram_queue: RabbitMQSettings
+    rabbitmq: RabbitMQSettings
 
     logging_level: str
     email_support: str
