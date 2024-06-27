@@ -21,8 +21,23 @@ from app.infrastructure.database.models.chat import ChatModel, Role
 from app.infrastructure.database.repositories import Repository
 from app.tgbot.filters.role import RoleFilter
 from app.tgbot.handlers.admin.add import add_chat_dialog
+from app.tgbot.handlers.admin.edit import (
+    edit_chat_id_dialog,
+    edit_chat_title_dialog,
+    edit_phone_dialog,
+    edit_email_dialog,
+    edit_commentary_dialog,
+    edit_access_until_dialog,
+    edit_chat_dialog,
+)
 from app.tgbot.lexicon.lexicon_ru import LEXICON
-from app.tgbot.states import AddChat, AdminMenu, DeleteChat, EditChat
+from app.tgbot.states import (
+    AddChat,
+    AdminMenu,
+    BlockChat,
+    DeleteChat,
+    EditChat,
+)
 
 
 async def export_chats(
@@ -64,6 +79,12 @@ admin_menu_dialog = Dialog(
             mode=StartMode.NORMAL,
         ),
         Start(
+            Const(LEXICON["block_chat"]),
+            id="block_chat",
+            state=BlockChat.select_chat,
+            mode=StartMode.NORMAL,
+        ),
+        Start(
             Const(LEXICON["delete_chat"]),
             id="delete_chat",
             state=DeleteChat.select_chat,
@@ -82,6 +103,13 @@ async def admin_menu_entry(message: Message, dialog_manager: DialogManager):
 def register_admin_menu(dp: Dispatcher):
     dp.include_router(admin_menu_dialog)
     dp.include_router(add_chat_dialog)
+    dp.include_router(edit_chat_dialog)
+    dp.include_router(edit_chat_id_dialog)
+    dp.include_router(edit_chat_title_dialog)
+    dp.include_router(edit_phone_dialog)
+    dp.include_router(edit_email_dialog)
+    dp.include_router(edit_commentary_dialog)
+    dp.include_router(edit_access_until_dialog)
     dp.message.register(
         admin_menu_entry,
         Command("admin"),

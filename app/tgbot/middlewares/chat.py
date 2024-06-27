@@ -2,9 +2,12 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 
 from aiogram import BaseMiddleware
 from aiogram.types import Chat, Update, User
+from loguru import logger
 
+from app.infrastructure.database.exceptions import ChatIdAlreadyExists
 from app.infrastructure.database.models.chat import ChatModel
 from app.infrastructure.database.repositories import Repository
+from app.tgbot.lexicon.lexicon_ru import LEXICON
 
 
 class ChatMiddleware(BaseMiddleware):
@@ -34,11 +37,18 @@ class ChatMiddleware(BaseMiddleware):
             chat_id=from_chat_id
         )
         if not chat:
-            chat = await repository.chat.add_chat(
-                chat_id=from_chat_id,
-                chat_title=chat_title,
-                chat_type=chat_type,
-            )
+            try:
+                chat = await repository.chat.add_chat(
+                    chat_id=from_chat_id,
+                    chat_title=chat_title,
+                    chat_type=chat_type,
+                )
+            except ChatIdAlreadyExists as err:
+                logger.error(err)
+                await event.message.answer(
+                    LEXICON["chat_id_already_exists_error"]
+                )
+                return
 
         data["chat"] = chat
         data["event_attrs"].update(

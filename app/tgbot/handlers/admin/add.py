@@ -1,3 +1,4 @@
+# isort:skip_file
 import re
 from datetime import datetime
 from operator import itemgetter
@@ -5,15 +6,22 @@ from typing import Dict, Optional
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import Dialog, DialogManager, ShowMode, Window
+from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.common import Whenable
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Back, Button, Cancel, Next, Row, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
+from loguru import logger
 
+from app.infrastructure.database.exceptions import DataDuplicationError
 from app.infrastructure.database.models.chat import ChatModel, Role
 from app.infrastructure.database.repositories import Repository
-from app.tgbot.handlers.admin.common import get_chat_data
+from app.tgbot.handlers.admin.common import (
+    enable_send_mode,
+    get_chat_data,
+    if_access_until_is_unlimited,
+    if_empty_commentary,
+)
 from app.tgbot.lexicon.lexicon_ru import LEXICON
 from app.tgbot.states import AddChat
 
@@ -25,22 +33,44 @@ chat_adding_process = Multi(
     Format(f"{LEXICON['email']}: {{{'email'}}}", when="email"),
     Format(f"{LEXICON['commentary']}: {{{'commentary'}}}", when="commentary"),
     Format(
+        f"{LEXICON['commentary']}: {LEXICON['empty_commentary']}",
+        when=if_empty_commentary,
+    ),
+    Format(
         f"{LEXICON['access_until']}: до {{{'access_until'}}}",
         when="access_until",
+    ),
+    Format(
+        f"{LEXICON['access_until']}: {LEXICON['unlimited']}",
+        when=if_access_until_is_unlimited,
     ),
 )
 
 
 async def switch_to_chat_title(
     callback: CallbackQuery, button: Button, dialog_manager: DialogManager
-):
+) -> None:
     await dialog_manager.switch_to(state=AddChat.chat_title)
 
 
 async def switch_to_commentary(
     callback: CallbackQuery, button: Button, dialog_manager: DialogManager
-):
+) -> None:
     await dialog_manager.switch_to(state=AddChat.commentary)
+
+
+async def skip_input_commentary(
+    callback: CallbackQuery, button: Button, dialog_manager: DialogManager
+) -> None:
+    dialog_manager.current_context().dialog_data["commentary"] = None
+    await dialog_manager.next()
+
+
+async def skip_input_access_until(
+    callback: CallbackQuery, button: Button, dialog_manager: DialogManager
+) -> None:
+    dialog_manager.current_context().dialog_data["access_until"] = None
+    await dialog_manager.next()
 
 
 async def request_chat_id(
@@ -125,6 +155,7 @@ async def request_access_until(
         dialog_manager.current_context().dialog_data["access_until"] = str(
             access_until
         )
+
         await dialog_manager.next()
     except ValueError:
         await message.answer(LEXICON["request_access_until_value_error"])
@@ -143,23 +174,30 @@ async def add_chat_yes_no(
         return
 
     repository: Repository = dialog_manager.middleware_data.get("repository")
-    data = dialog_manager.current_context().dialog_data
+    dialog_data = dialog_manager.current_context().dialog_data
 
-    await repository.chat.auth_chat(data=data)
+    data: Dict = dict(dialog_data)
+    if "access_until" in data:
+        if data["access_until"] is not None:
+            data["access_until"] = datetime.strptime(
+                data["access_until"], "%Y-%m-%d %H:%M:%S"
+            )
 
-    data["result"] = LEXICON["chat_adding_success"]
+    try:
+        chat = await repository.chat.edit_chat(
+            chat_id=data["chat_id"], data=data
+        )
+        await repository.chat.set_chat_auth(chat=chat)
+        dialog_data["result"] = LEXICON["chat_adding_success"]
+    except DataDuplicationError as err:
+        logger.error(err)
+        dialog_data["result"] = LEXICON["data_duplication_error"]
+    finally:
+        key = repository.chat.storage.get_key(data["chat_id"])
+        await repository.chat.storage.delete(key=key)
 
-    await dialog_manager.next()
-    await callback.answer()
-
-
-async def enable_send_mode(
-    event: CallbackQuery,
-    button: Button,
-    dialog_manager: DialogManager,
-    **kwargs,
-) -> None:
-    dialog_manager.show_mode = ShowMode.SEND
+        await dialog_manager.next()
+        await callback.answer()
 
 
 async def get_result(dialog_manager: DialogManager, **kwargs) -> Dict:
@@ -260,7 +298,11 @@ add_chat_dialog = Dialog(
                 when=is_public_chat,
             ),
             Cancel(Const(LEXICON["cancel"])),
-            Next(Const(LEXICON["next"])),
+            Button(
+                text=Const(LEXICON["next"]),
+                id="skip_input_access_until",
+                on_click=skip_input_commentary,
+            ),
         ),
         getter=get_chat_data,
         state=AddChat.commentary,
@@ -273,7 +315,11 @@ add_chat_dialog = Dialog(
         Row(
             Back(Const(LEXICON["back"])),
             Cancel(Const(LEXICON["cancel"])),
-            Next(Const(LEXICON["next"])),
+            Button(
+                text=Const(LEXICON["next"]),
+                id="skip_input_access_until",
+                on_click=skip_input_access_until,
+            ),
         ),
         getter=get_chat_data,
         state=AddChat.access_until,

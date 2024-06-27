@@ -35,3 +35,6 @@ class RedisCacheBase(BaseCache, BaseSerializer):
         await self.redis.set(
             name=key, value=self.serialize(value), ex=self.default_ttl
         )
+
+    async def delete(self, key: str) -> None:
+        await self.redis.delete(key)

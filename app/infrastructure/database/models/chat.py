@@ -2,6 +2,7 @@ import datetime
 from enum import Enum
 from uuid import uuid4
 
+from sqlalchemy import inspect
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -36,3 +37,9 @@ class ChatModel(BaseModel):
         DateTime, server_default=func.now()
     )
     access_until: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+    def object_as_dict(obj):
+        return {
+            c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs
+        }
