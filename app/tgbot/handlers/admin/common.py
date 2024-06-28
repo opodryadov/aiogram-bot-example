@@ -4,9 +4,18 @@ from aiogram.types import CallbackQuery
 from aiogram.utils.text_decorations import html_decoration
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.common import Whenable
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Select
 
+from app.infrastructure.database.repositories import Repository
 from app.tgbot.lexicon.lexicon_ru import LEXICON
+
+
+async def get_chat(
+    dialog_manager: DialogManager, repository: Repository, **kwargs
+) -> Dict:
+    chat_id = dialog_manager.current_context().dialog_data["selected_chat"]
+    chat = await repository.chat.get_chat(int(chat_id))
+    return {"chat": chat}
 
 
 def get_chat_fields() -> List[tuple]:
@@ -36,6 +45,26 @@ async def get_chat_data(dialog_manager: DialogManager, **kwargs) -> Dict:
         "commentary": dialog_data.get("commentary"),
         "access_until": dialog_data.get("access_until"),
     }
+
+
+async def get_chats(
+    dialog_manager: DialogManager, repository: Repository, **kwargs
+) -> Dict:
+    chats = await repository.chat.get_all_auth_chats()
+    return {"chats": chats}
+
+
+async def chat_id_selection(
+    callback: CallbackQuery,
+    widget: Select,
+    dialog_manager: DialogManager,
+    item_id: str,
+) -> None:
+    dialog_manager.current_context().dialog_data["selected_chat"] = int(
+        item_id
+    )
+    await dialog_manager.next()
+    await callback.answer()
 
 
 async def enable_send_mode(

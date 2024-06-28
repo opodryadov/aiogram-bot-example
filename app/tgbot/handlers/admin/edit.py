@@ -25,8 +25,10 @@ from app.infrastructure.database.exceptions import DataDuplicationError
 from app.infrastructure.database.models import ChatModel
 from app.infrastructure.database.repositories import Repository
 from app.tgbot.handlers.admin.common import (
+    chat_id_selection,
     copy_start_data_to_context,
     enable_send_mode,
+    get_chats,
     get_chat_data,
     get_chat_fields,
     get_result,
@@ -82,26 +84,6 @@ chat_editing_process = Multi(
         when=if_access_until_is_unlimited,
     ),
 )
-
-
-async def get_chats(
-    dialog_manager: DialogManager, repository: Repository, **kwargs
-) -> Dict:
-    chats = await repository.chat.get_all_auth_chats()
-    return {"chats": chats}
-
-
-async def chat_id_selection(
-    callback: CallbackQuery,
-    widget: Select,
-    dialog_manager: DialogManager,
-    item_id: str,
-) -> None:
-    dialog_manager.current_context().dialog_data["selected_chat"] = int(
-        item_id
-    )
-    await dialog_manager.next()
-    await callback.answer()
 
 
 async def field_selection(
@@ -359,7 +341,9 @@ async def save_edited_chat(
             await repository.chat.edit_chat(
                 chat_id=data["selected_chat"], data=data
             )
-            dialog_data["result"] = LEXICON["chat_editing_success"]
+            dialog_data["result"] = LEXICON["chat_editing_success"].format(
+                data["selected_chat"]
+            )
     except DataDuplicationError as err:
         logger.error(err)
         dialog_data["result"] = LEXICON["data_duplication_error"]
@@ -461,7 +445,12 @@ edit_chat_dialog = Dialog(
         Multi(
             Format(
                 LEXICON["selected_chat"].format(
-                    "{chat.chat_id}", "{chat.chat_title}"
+                    "{chat.chat_id}",
+                    "{chat.chat_title}",
+                    "{chat.phone}",
+                    "{chat.email}",
+                    "{chat.commentary}",
+                    "{chat.access_until}",
                 )
             ),
             chat_editing_process,

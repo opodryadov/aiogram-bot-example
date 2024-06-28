@@ -2,7 +2,6 @@
 from .admin import AdminMenu
 from .chat import (
     AddChat,
-    BlockChat,
     DeleteChat,
     EditAccessUntil,
     EditChat,
@@ -17,7 +16,6 @@ from .chat import (
 __all__ = [
     "AdminMenu",
     "AddChat",
-    "BlockChat",
     "DeleteChat",
     "EditAccessUntil",
     "EditChat",

@@ -46,9 +46,3 @@ class DeleteChat(StatesGroup):
     select_chat = State()
     confirm = State()
     result = State()
-
-
-class BlockChat(StatesGroup):
-    select_chat = State()
-    confirm = State()
-    result = State()

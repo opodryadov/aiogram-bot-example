@@ -73,3 +73,10 @@ class ChatRepository(BaseRepository):
             select(ChatModel).where(ChatModel.role != Role.UNAUTHORIZED)
         )
         return auth_chats.all()
+
+    async def delete_chat(self, chat_id: int) -> None:
+        chat: ChatModel = await self.session.scalar(
+            select(ChatModel).where(ChatModel.chat_id == chat_id)
+        )
+        await self.session.delete(chat)
+        await self.commit()

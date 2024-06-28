@@ -188,7 +188,9 @@ async def add_chat_yes_no(
             chat_id=data["chat_id"], data=data
         )
         await repository.chat.set_chat_auth(chat=chat)
-        dialog_data["result"] = LEXICON["chat_adding_success"]
+        dialog_data["result"] = LEXICON["chat_adding_success"].format(
+            data["chat_id"]
+        )
     except DataDuplicationError as err:
         logger.error(err)
         dialog_data["result"] = LEXICON["data_duplication_error"]
